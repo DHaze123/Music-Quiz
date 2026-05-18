@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Latin Music Quiz</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #ff6b6b, #feca57);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .quiz-container {
+      background: white;
+      width: 100%;
+      max-width: 650px;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #222;
+    }
+
+    .question-number {
+      text-align: center;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .question {
+      font-size: 1.4rem;
+      margin-bottom: 25px;
+      text-align: center;
+      color: #333;
+    }
+
+    .answers {
+      display: grid;
+      gap: 12px;
+    }
+
+    button.answer-btn {
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      background: #f1f1f1;
+      transition: 0.2s;
+    }
+
+    button.answer-btn:hover:not(:disabled) {
+      background: #ddd;
+    }
+
+    button.correct {
+      background: #2ecc71 !important;
+      color: white;
+    }
+
+    button.wrong {
+      background: #e74c3c !important;
+      color: white;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+    }
+
+    .score {
+      margin-top: 20px;
+      text-align: center;
+      font-weight: bold;
+      color: #444;
+    }
+
+    .next-btn,
+    .restart-btn {
+      margin-top: 25px;
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: #6c5ce7;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .next-btn:hover,
+    .restart-btn:hover {
+      background: #5848c2;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .final-score {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-top: 20px;
+      color: #222;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="quiz-container">
+    <h1>🎵 Latin Music Quiz</h1>
+
+    <div id="quiz">
+      <div class="question-number" id="question-number"></div>
+
+      <div class="question" id="question"></div>
+
+      <div class="answers" id="answers"></div>
+
+      <div class="score" id="score"></div>
+
+      <button class="next-btn hidden" id="next-btn">Next Question</button>
+    </div>
+
+    <div id="results" class="hidden">
+      <div class="final-score" id="final-score"></div>
+      <button class="restart-btn" id="restart-btn">Restart Quiz</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        song: "Tití Me Preguntó",
+        correct: "Bad Bunny",
+        options: ["Bad Bunny", "J Balvin", "Rauw Alejandro", "Feid"]
+      },
+      {
+        song: "Bichota",
+        correct: "Karol G",
+        options: ["Rosalía", "Shakira", "Karol G", "Natti Natasha"]
+      },
+      {
+        song: "Hawái",
+        correct: "Maluma",
+        options: ["Maluma", "Ozuna", "Anuel AA", "Manuel Turizo"]
+      },
+      {
+        song: "Despechá",
+        correct: "Rosalía",
+        options: ["Rosalía", "Karol G", "Aitana", "Becky G"]
+      },
+      {
+        song: "Todo de Ti",
+        correct: "Rauw Alejandro",
+        options: ["Sebastián Yatra", "Rauw Alejandro", "Camilo", "Feid"]
+      },
+      {
+        song: "Ella Baila Sola",
+        correct: "Eslabon Armado & Peso Pluma",
+        options: [
+          "Grupo Frontera",
+          "Peso Pluma",
+          "Natanael Cano",
+          "Eslabon Armado & Peso Pluma"
+        ]
+      },
+      {
+        song: "TQG",
+        correct: "Karol G & Shakira",
+        options: [
+          "Karol G & Shakira",
+          "Shakira & Becky G",
+          "Karol G & Rosalía",
+          "Natti Natasha & Shakira"
+        ]
+      },
+      {
+        song: "Provenza",
+        correct: "Karol G",
+        options: ["Karol G", "Young Miko", "Rosalía", "Anitta"]
+      },
+      {
+        song: "Pepas",
+        correct: "Farruko",
+        options: ["Daddy Yankee", "Farruko", "Don Omar", "Jhayco"]
+      },
+      {
+        song: "La Bachata",
+        correct: "Manuel Turizo",
+        options: [
+          "Prince Royce",
+          "Romeo Santos",
+          "Manuel Turizo",
+          "Camilo"
+        ]
+      }
+    ];
+
+    const questionEl = document.getElementById("question");
+    const answersEl = document.getElementById("answers");
+    const scoreEl = document.getElementById("score");
+    const nextBtn = document.getElementById("next-btn");
+    const questionNumberEl = document.getElementById("question-number");
+
+    const resultsEl = document.getElementById("results");
+    const finalScoreEl = document.getElementById("final-score");
+    const restartBtn = document.getElementById("restart-btn");
+
+    let currentQuestion = 0;
+    let score = 0;
+
+    function loadQuestion() {
+      nextBtn.classList.add("hidden");
+
+      const q = questions[currentQuestion];
+
+      questionNumberEl.textContent =
+        `Question ${currentQuestion + 1} of ${questions.length}`;
+
+      questionEl.textContent =
+        `Who created the song "${q.song}"?`;
+
+      answersEl.innerHTML = "";
+
+      q.options.forEach(option => {
+        const button = document.createElement("button");
+        button.textContent = option;
+        button.classList.add("answer-btn");
+
+        button.addEventListener("click", () => selectAnswer(button, q.correct));
+
+        answersEl.appendChild(button);
+      });
+
+      scoreEl.textContent = `Score: ${score}`;
+    }
+
+    function selectAnswer(button, correctAnswer) {
+      const buttons = document.querySelectorAll(".answer-btn");
+
+      buttons.forEach(btn => {
+        btn.disabled = true;
+
+        if (btn.textContent === correctAnswer) {
+          btn.classList.add("correct");
+        }
+      });
+
+      if (button.textContent === correctAnswer) {
+        score++;
+      } else {
+        button.classList.add("wrong");
+      }
+
+      scoreEl.textContent = `Score: ${score}`;
+
+      nextBtn.classList.remove("hidden");
+    }
+
+    nextBtn.addEventListener("click", () => {
+      currentQuestion++;
+
+      if (currentQuestion < questions.length) {
+        loadQuestion();
+      } else {
+        showResults();
+      }
+    });
+
+    function showResults() {
+      document.getElementById("quiz").classList.add("hidden");
+      resultsEl.classList.remove("hidden");
+
+      finalScoreEl.innerHTML =
+        `🎉 You scored <strong>${score}</strong> out of <strong>${questions.length}</strong>!`;
+    }
+
+    restartBtn.addEventListener("click", restartQuiz);
+
+    function restartQuiz() {
+      currentQuestion = 0;
+      score = 0;
+
+      resultsEl.classList.add("hidden");
+      document.getElementById("quiz").classList.remove("hidden");
+
+      loadQuestion();
+    }
+
+    loadQuestion();
+  </script>
+
+</body>
+</html>
